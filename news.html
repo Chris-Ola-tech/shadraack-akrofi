@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>News & Updates | Shadrack Akrofi-Quarcoo</title>
+    <meta name="description" content="Latest news, updates and insights from Shadrack Akrofi-Quarcoo – motivational speaker, author and development consultant.">
+    <link rel="icon" type="image/icon" href="./assets/images/orkut.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Lato:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="main.js" defer></script>
+
+    <style>
+        /* ============================================================
+           NEWS PAGE STYLES — matches site design system
+           Colors: #0b132b (navy), #f4b400 (gold), #f8f9fa (light bg)
+           ============================================================ */
+
+        /* ---- Toast Notification ---- */
+        .saq-toast {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 9999;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            max-width: 320px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        }
+        .saq-toast--success { background: #0b132b; color: #f4b400; border-left: 4px solid #f4b400; }
+        .saq-toast--error   { background: #c0392b; color: #fff; border-left: 4px solid #ff6b6b; }
+        .saq-toast--info    { background: #1a2847; color: #fff; border-left: 4px solid #74b9ff; }
+
+        /* ---- Page Hero ---- */
+        .news-hero {
+            background: linear-gradient(135deg, #0b132b 0%, #1a2847 60%, #0b132b 100%);
+            padding: 7rem 2rem 4rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .news-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(244,180,0,0.12) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .news-hero-label {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            background: rgba(244,180,0,0.15);
+            border: 2px solid rgba(244,180,0,0.4);
+            border-radius: 50px;
+            color: #f4b400;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+        .news-hero h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            color: #f8f9fa;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+        .news-hero h1 span {
+            background: linear-gradient(135deg, #f4b400, #ffd54f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .news-hero p {
+            color: rgba(248,249,250,0.8);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            line-height: 1.7;
+        }
+        .news-hero-auth-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .news-auth-btn {
+            padding: 0.75rem 1.8rem;
+            border-radius: 50px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .news-auth-btn--primary {
+            background: #f4b400;
+            color: #0b132b;
+        }
+        .news-auth-btn--primary:hover { background: #ffd54f; transform: translateY(-2px); }
+        .news-auth-btn--secondary {
+            background: transparent;
+            color: #f8f9fa;
+            border-color: rgba(248,249,250,0.4);
+        }
+        .news-auth-btn--secondary:hover { border-color: #f4b400; color: #f4b400; }
+        .news-auth-btn--danger {
+            background: transparent;
+            color: #ff7675;
+            border-color: rgba(255,118,117,0.4);
+            font-size: 0.85rem;
+            padding: 0.6rem 1.2rem;
+        }
+        .news-auth-btn--danger:hover { background: rgba(255,118,117,0.1); }
+        #news-user-greeting {
+            color: rgba(248,249,250,0.9);
+            font-size: 0.95rem;
+            font-family: 'Lato', sans-serif;
+        }
+        #news-user-greeting strong { color: #f4b400; }
+
+        /* ---- Main Feed Layout ---- */
+        .news-feed-section {
+            background: #f8f9fa;
+            min-height: 60vh;
+            padding: 3rem 1.5rem 5rem;
+        }
+        .news-feed-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .news-feed-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .news-feed-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #0b132b;
+        }
+        .news-post-count {
+            font-size: 0.85rem;
+            color: #6c757d;
+            background: #e9ecef;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+        }
+
+        /* ---- Loading Skeleton ---- */
+        .news-skeleton {
+            background: #fff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(11,19,43,0.06);
+            margin-bottom: 2rem;
+            animation: news-shimmer 1.5s infinite;
+        }
+        .news-skeleton-img { height: 200px; background: #e9ecef; }
+        .news-skeleton-body { padding: 1.5rem; }
+        .news-skeleton-line {
+            height: 14px;
+            background: #e9ecef;
+            border-radius: 7px;
+            margin-bottom: 0.8rem;
+        }
+        .news-skeleton-line--title { height: 20px; width: 70%; }
+        .news-skeleton-line--short { width: 40%; }
+        @keyframes news-shimmer {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        /* ---- News Post Card ---- */
+        .news-post-card {
+            background: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(11,19,43,0.07);
+            margin-bottom: 2rem;
+            border: 1px solid rgba(11,19,43,0.06);
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+            animation: news-card-enter 0.5s ease forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        @keyframes news-card-enter {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .news-post-card:hover {
+            box-shadow: 0 12px 40px rgba(11,19,43,0.12);
+            transform: translateY(-3px);
+        }
+
+        /* Post Header */
+        .news-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 1.2rem 1.5rem 0;
+        }
+        .news-card-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f4b400, #0b132b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .news-card-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .news-card-author-info { flex: 1; min-width: 0; }
+        .news-card-author-name {
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #0b132b;
+        }
+        .news-card-timestamp {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        /* Post Image */
+        .news-card-image {
+            width: 100%;
+            max-height: 420px;
+            object-fit: cover;
+            display: block;
+            margin-top: 1rem;
+            background: #e9ecef;
+        }
+
+        /* Post Body */
+        .news-card-body { padding: 1.2rem 1.5rem 0; }
+        .news-card-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #0b132b;
+            margin-bottom: 0.6rem;
+            line-height: 1.4;
+        }
+        .news-card-content {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.97rem;
+            color: #495057;
+            line-height: 1.7;
+        }
+        .news-card-content.truncated { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .news-read-more {
+            color: #f4b400;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.9rem;
+            border: none;
+            background: none;
+            padding: 0;
+            margin-top: 0.4rem;
+            display: block;
+        }
+        .news-read-more:hover { text-decoration: underline; }
+
+        /* Post Actions Bar */
+        .news-card-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #f0f0f0;
+            margin-top: 1.2rem;
+            flex-wrap: wrap;
+        }
+        .news-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.55rem 1rem;
+            border-radius: 25px;
+            border: none;
+            background: #f8f9fa;
+            color: #6c757d;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            flex-shrink: 0;
+        }
+        .news-action-btn:hover { background: #e9ecef; color: #0b132b; }
+        .news-action-btn.liked { background: rgba(231,76,60,0.1); color: #e74c3c; }
+        .news-action-btn.liked svg { fill: #e74c3c; }
+        .news-action-btn svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
+        .news-action-btn--comment:hover { background: rgba(52,152,219,0.1); color: #2980b9; }
+        .news-action-btn--share:hover { background: rgba(39,174,96,0.1); color: #27ae60; }
+        .news-action-spacer { flex: 1; }
+
+        /* Comments Section */
+        .news-comments-section {
+            padding: 0 1.5rem 1.5rem;
+            border-top: 1px solid #f0f0f0;
+            display: none;
+        }
+        .news-comments-section.open { display: block; }
+        .news-comments-list { margin-bottom: 1rem; }
+        .news-comment-item {
+            display: flex;
+            gap: 0.7rem;
+            margin-bottom: 0.8rem;
+            align-items: flex-start;
+        }
+        .news-comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0b132b, #f4b400);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: 'Poppins', sans-serif;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .news-comment-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .news-comment-bubble {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 0.6rem 0.9rem;
+            flex: 1;
+            min-width: 0;
+        }
+        .news-comment-author {
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #0b132b;
+            margin-bottom: 0.2rem;
+        }
+        .news-comment-text { font-size: 0.9rem; color: #495057; line-height: 1.5; }
+        .news-comment-time { font-size: 0.75rem; color: #adb5bd; margin-top: 0.2rem; }
+        .news-comment-delete {
+            font-size: 0.75rem;
+            color: #e74c3c;
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 0 0.3rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .news-comment-item:hover .news-comment-delete { opacity: 1; }
+
+        /* Comment Form */
+        .news-comment-form {
+            display: flex;
+            gap: 0.6rem;
+            align-items: flex-end;
+            margin-top: 0.8rem;
+        }
+        .news-comment-input {
+            flex: 1;
+            padding: 0.65rem 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+            resize: none;
+            transition: border-color 0.2s;
+            background: #f8f9fa;
+        }
+        .news-comment-input:focus { border-color: #f4b400; background: #fff; }
+        .news-comment-submit {
+            padding: 0.65rem 1.2rem;
+            background: #0b132b;
+            color: #f4b400;
+            border: none;
+            border-radius: 25px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .news-comment-submit:hover { background: #f4b400; color: #0b132b; }
+        .news-comment-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .news-login-prompt {
+            text-align: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .news-login-prompt a {
+            color: #f4b400;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .news-login-prompt a:hover { text-decoration: underline; }
+
+        /* Empty state */
+        .news-empty-state {
+            text-align: center;
+            padding: 5rem 2rem;
+            color: #6c757d;
+        }
+        .news-empty-state svg {
+            width: 64px;
+            height: 64px;
+            fill: #dee2e6;
+            margin-bottom: 1rem;
+        }
+        .news-empty-state h3 { font-family: 'Poppins', sans-serif; color: #adb5bd; margin-bottom: 0.5rem; }
+
+        /* ---- AUTH MODAL ---- */
+        .news-auth-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(11,19,43,0.7);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            backdrop-filter: blur(4px);
+        }
+        .news-auth-modal-overlay.open { display: flex; }
+        .news-auth-modal {
+            background: #fff;
+            border-radius: 24px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 440px;
+            position: relative;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+            animation: news-modal-enter 0.35s cubic-bezier(0.4,0,0.2,1);
+        }
+        @keyframes news-modal-enter {
+            from { opacity: 0; transform: scale(0.92) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .news-auth-modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #f8f9fa;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #6c757d;
+            transition: all 0.2s;
+        }
+        .news-auth-modal-close:hover { background: #e9ecef; color: #0b132b; }
+        .news-auth-modal-logo {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .news-auth-modal-logo-circle {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #0b132b, #1a2847);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.8rem;
+        }
+        .news-auth-modal-logo-circle svg { width: 28px; height: 28px; fill: #f4b400; }
+        .news-auth-modal h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #0b132b;
+            text-align: center;
+            margin-bottom: 0.4rem;
+        }
+        .news-auth-modal p {
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 1.8rem;
+        }
+        .news-auth-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 1.5rem;
+        }
+        .news-auth-tab {
+            flex: 1;
+            padding: 0.6rem;
+            border: none;
+            background: transparent;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #6c757d;
+            transition: all 0.2s;
+        }
+        .news-auth-tab.active { background: #fff; color: #0b132b; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .news-auth-form { display: none; }
+        .news-auth-form.active { display: block; }
+        .news-form-group { margin-bottom: 1.2rem; }
+        .news-form-group label {
+            display: block;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #0b132b;
+            margin-bottom: 0.4rem;
+        }
+        .news-form-group input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+            background: #f8f9fa;
+        }
+        .news-form-group input:focus { border-color: #f4b400; background: #fff; }
+        .news-form-submit {
+            width: 100%;
+            padding: 0.95rem;
+            background: linear-gradient(135deg, #0b132b, #1a2847);
+            color: #f4b400;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+        }
+        .news-form-submit:hover { background: linear-gradient(135deg, #f4b400, #ffd54f); color: #0b132b; }
+        .news-form-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .news-form-error {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            margin-top: 0.8rem;
+            text-align: center;
+            display: none;
+        }
+        .news-form-error.visible { display: block; }
+
+        /* ---- Load More ---- */
+        .news-load-more-btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background: #fff;
+            color: #0b132b;
+            border: 2px solid #e9ecef;
+            border-radius: 50px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+        .news-load-more-btn:hover { border-color: #f4b400; color: #f4b400; }
+        .news-load-more-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ---- Share tooltip ---- */
+        .news-share-copied {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0b132b;
+            color: #f4b400;
+            padding: 0.7rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            font-family: 'Poppins', sans-serif;
+        }
+        .news-share-copied.show { opacity: 1; }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 600px) {
+            .news-hero { padding: 6rem 1.2rem 3rem; }
+            .news-card-header { padding: 1rem 1rem 0; }
+            .news-card-body { padding: 1rem 1rem 0; }
+            .news-card-actions { padding: 0.8rem 1rem; gap: 0.3rem; }
+            .news-comments-section { padding: 0 1rem 1rem; }
+            .news-action-btn { padding: 0.5rem 0.7rem; font-size: 0.82rem; }
+            .news-auth-modal { padding: 1.8rem 1.5rem; }
+            .news-feed-section { padding: 2rem 1rem 4rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ======== HEADER (matches all pages) ======== -->
+    <header class="header" role="banner">
+        <nav class="nav-container" role="navigation" aria-label="Main navigation">
+            <a href="./index.html" class="logo" aria-label="Shadrack Akrofi-Quarcoo - Home">Shadrack</a>
+            <button class="menu-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="nav-menu">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="./index.html" class="nav-link">Home</a></li>
+                <li><a href="./about.html" class="nav-link">About</a></li>
+                <li><a href="./featuredwork.html" class="nav-link">Services</a></li>
+                <li><a href="./contact.html" class="nav-link">Contact</a></li>
+                <li><a href="./ngo.html" class="nav-link">NGO</a></li>
+                <li><a href="./sales.html" class="nav-link">Sales</a></li>
+                <li><a href="./apply.html" class="nav-link">Apply</a></li>
+                <li><a href="./news.html" class="nav-link active">News</a></li>
+                <li><a href="https://wa.me/2330540336116" class="cta-button">Book Me</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- ======== HERO ======== -->
+    <section class="news-hero">
+        <span class="news-hero-label">Latest Updates</span>
+        <h1>News &amp; <span>Insights</span></h1>
+        <p>Stay informed with the latest updates, reflections, and announcements from Shadrack Akrofi-Quarcoo and the Coach International team.</p>
+
+        <div class="news-hero-auth-bar" id="news-auth-bar">
+            <!-- Rendered by JS based on auth state -->
+        </div>
+    </section>
+
+    <!-- ======== FEED ======== -->
+    <section class="news-feed-section">
+        <div class="news-feed-container">
+            <div class="news-feed-header">
+                <div class="news-feed-title">Latest Posts</div>
+                <span class="news-post-count" id="news-post-count">Loading…</span>
+            </div>
+
+            <!-- Skeleton loaders shown while fetching -->
+            <div id="news-skeletons">
+                <div class="news-skeleton">
+                    <div class="news-skeleton-img"></div>
+                    <div class="news-skeleton-body">
+                        <div class="news-skeleton-line news-skeleton-line--title"></div>
+                        <div class="news-skeleton-line"></div>
+                        <div class="news-skeleton-line news-skeleton-line--short"></div>
+                    </div>
+                </div>
+                <div class="news-skeleton">
+                    <div class="news-skeleton-img"></div>
+                    <div class="news-skeleton-body">
+                        <div class="news-skeleton-line news-skeleton-line--title"></div>
+                        <div class="news-skeleton-line"></div>
+                        <div class="news-skeleton-line news-skeleton-line--short"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Posts rendered here -->
+            <div id="news-posts-feed"></div>
+
+            <!-- Load More -->
+            <button class="news-load-more-btn" id="news-load-more-btn" style="display:none">
+                Load More Posts
+            </button>
+        </div>
+    </section>
+
+    <!-- ======== AUTH MODAL ======== -->
+    <div class="news-auth-modal-overlay" id="news-auth-modal" role="dialog" aria-modal="true" aria-label="Sign in or sign up">
+        <div class="news-auth-modal">
+            <button class="news-auth-modal-close" id="news-auth-modal-close" aria-label="Close modal">✕</button>
+
+            <div class="news-auth-modal-logo">
+                <div class="news-auth-modal-logo-circle">
+                    <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+                </div>
+                <h2 id="auth-modal-title">Join the Conversation</h2>
+                <p id="auth-modal-subtitle">Sign in or create an account to like and comment on posts.</p>
+            </div>
+
+            <div class="news-auth-tabs">
+                <button class="news-auth-tab active" data-tab="login">Sign In</button>
+                <button class="news-auth-tab" data-tab="signup">Sign Up</button>
+            </div>
+
+            <!-- Login Form -->
+            <div class="news-auth-form active" id="auth-form-login">
+                <div class="news-form-group">
+                    <label for="login-email">Email Address</label>
+                    <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+                </div>
+                <div class="news-form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="Your password" autocomplete="current-password">
+                </div>
+                <button class="news-form-submit" id="login-submit-btn">Sign In</button>
+                <p class="news-form-error" id="login-error"></p>
+            </div>
+
+            <!-- Signup Form -->
+            <div class="news-auth-form" id="auth-form-signup">
+                <div class="news-form-group">
+                    <label for="signup-name">Full Name</label>
+                    <input type="text" id="signup-name" placeholder="Your full name" autocomplete="name">
+                </div>
+                <div class="news-form-group">
+                    <label for="signup-email">Email Address</label>
+                    <input type="email" id="signup-email" placeholder="you@example.com" autocomplete="email">
+                </div>
+                <div class="news-form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" placeholder="Minimum 6 characters" autocomplete="new-password">
+                </div>
+                <button class="news-form-submit" id="signup-submit-btn">Create Account</button>
+                <p class="news-form-error" id="signup-error"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share copied toast -->
+    <div class="news-share-copied" id="news-share-copied">🔗 Link copied to clipboard!</div>
+
+    <!-- ======== FOOTER ======== -->
+    <footer class="olawale-site-footer-master-container">
+        <div class="olawale-footer-inner-wrapper-grid">
+            <div class="olawale-footer-brand-mission-column">
+                <div class="olawale-footer-logo-container">
+                    <div class="olawale-footer-logo-symbol">O</div>
+                    <span class="olawale-footer-brand-name-text">Shadrack Akrofi-Quarcoo</span>
+                </div>
+                <p class="olawale-footer-mission-tagline-text">Empowering people and organizations to discover purpose, unlock potential, and create lasting impact.</p>
+            </div>
+            <nav class="olawale-footer-navigation-links-column" aria-label="Footer navigation">
+                <h3 class="olawale-footer-column-heading-title">Quick Links</h3>
+                <ul class="olawale-footer-nav-links-list">
+                    <li class="olawale-footer-nav-link-item"><a href="./index.html" class="olawale-footer-nav-anchor-link">Home</a></li>
+                    <li class="olawale-footer-nav-link-item"><a href="./about.html" class="olawale-footer-nav-anchor-link">About</a></li>
+                    <li class="olawale-footer-nav-link-item"><a href="./featuredwork.html" class="olawale-footer-nav-anchor-link">Services</a></li>
+                    <li class="olawale-footer-nav-link-item"><a href="./news.html" class="olawale-footer-nav-anchor-link">News</a></li>
+                    <li class="olawale-footer-nav-link-item"><a href="./ngo.html" class="olawale-footer-nav-anchor-link">NGO</a></li>
+                    <li class="olawale-footer-nav-link-item"><a href="./contact.html" class="olawale-footer-nav-anchor-link">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="olawale-footer-contact-social-column">
+                <div class="olawale-footer-contact-info-block">
+                    <h3 class="olawale-footer-column-heading-title">Get In Touch</h3>
+                    <div class="olawale-footer-contact-item-row">
+                        <span class="olawale-footer-contact-icon-wrapper">✉</span>
+                        <a href="mailto:sakrofiquarcoo@yahoo.com" class="olawale-footer-contact-link-element">sakrofiquarcoo@yahoo.com</a>
+                    </div>
+                    <div class="olawale-footer-contact-item-row">
+                        <span class="olawale-footer-contact-icon-wrapper">📞</span>
+                        <a href="tel:+2330540336116" class="olawale-footer-contact-link-element">+233 540 336 116</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="olawale-footer-bottom-bar-section">
+            <p class="olawale-footer-copyright-text-element">© 2025 Shadrack Akrofi-Quarcoo. All Rights Reserved.</p>
+            <button class="olawale-footer-back-to-top-button" id="olawaleBackToTopBtnElement">Back to Top <span class="olawale-footer-arrow-up-icon">↑</span></button>
+        </div>
+    </footer>
+
+    <!-- ======== SCRIPTS ======== -->
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Your config (set your URL + KEY there) -->
+    <script src="./supaase.js"></script>
+    <!-- News page logic -->
+    <script src="./news.js"></script>
+</body>
+</html>
