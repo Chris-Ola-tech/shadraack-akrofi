@@ -359,53 +359,63 @@
         `;
     }
 
-    // ── Submit comment ────────────────────────────────────────────────────────
-    async function handleComment(postId, card) {
-        if (!currentUser) { openAuthModal('login'); return; }
+   async function handleSignup() {
+    const name     = document.getElementById('signup-name').value.trim();
+    const email    = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    const btn      = document.getElementById('signup-submit-btn');
+    const errorEl  = document.getElementById('signup-error');
 
-        const textarea  = card.querySelector(`#comment-input-${postId}`);
-        const submitBtn = card.querySelector('.news-comment-submit');
-        if (!textarea) return;
-
-        const content = textarea.value.trim();
-        if (!content) return;
-
-        submitBtn.disabled    = true;
-        submitBtn.textContent = '…';
-
-        // Insert using your actual columns: post_id, user_id, user_name, content
-        const { data, error } = await supabase
-            .from('comments')
-            .insert({
-                post_id:   postId,
-                user_id:   currentUser.id,
-                user_name: currentUserProfile?.full_name || currentUserProfile?.email || 'Anonymous',
-                content
-            })
-            .select('*')
-            .single();
-
-        submitBtn.disabled    = false;
-        submitBtn.textContent = 'Post';
-
-        if (error) { showToast('Could not post comment.', 'error'); return; }
-
-        const listEl = document.getElementById(`comments-list-${postId}`);
-        if (listEl) {
-            const placeholder = listEl.querySelector('p');
-            if (placeholder) placeholder.remove();
-            listEl.insertAdjacentHTML('beforeend', renderComment(data));
-            listEl.querySelectorAll('.news-comment-delete').forEach(btn => {
-                btn.addEventListener('click', () => handleDeleteComment(btn.dataset.commentId, postId));
-            });
-        }
-
-        const countEl = card.querySelector('.comment-count');
-        if (countEl) countEl.textContent = parseInt(countEl.textContent || 0) + 1;
-
-        textarea.value      = '';
-        textarea.style.height = 'auto';
+    if (!name || !email || !password) {
+        errorEl.textContent = 'Please fill in all fields.';
+        errorEl.classList.add('visible');
+        return;
     }
+    if (password.length < 6) {
+        errorEl.textContent = 'Password must be at least 6 characters.';
+        errorEl.classList.add('visible');
+        return;
+    }
+
+    // Prevent double clicks
+    if (btn.disabled) return;
+
+    btn.disabled    = true;
+    btn.textContent = 'Creating account…';
+    errorEl.classList.remove('visible');
+
+    const redirectTo = window.location.hostname === '127.0.0.1'
+        ? 'http://127.0.0.1:5500/news.html'
+        : 'https://tsaqif-myga.com/news.html';
+
+    const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+            data: { full_name: name },
+            emailRedirectTo: redirectTo
+        }
+    });
+
+    btn.disabled    = false;
+    btn.textContent = 'Create Account';
+
+    if (error) {
+        errorEl.textContent = error.message || 'Sign up failed.';
+        errorEl.classList.add('visible');
+        return;
+    }
+
+    // Check if user already exists
+    if (data?.user?.identities?.length === 0) {
+        errorEl.textContent = 'An account with this email already exists.';
+        errorEl.classList.add('visible');
+        return;
+    }
+
+    closeAuthModal();
+    showToast('Account created! Check your email to confirm.', 'success');
+}
 
     // ── Delete comment ────────────────────────────────────────────────────────
     async function handleDeleteComment(commentId, postId) {
