@@ -33,24 +33,79 @@
         setupAuthModal();
         setupBackToTop();
 
-        supabase.auth.onAuthStateChange(async (event, session) => {
-            currentUser = session?.user || null;
-            if (currentUser) {
-                currentUserProfile = await getUserProfile(currentUser.id);
-                await loadUserLikes();
-            } else {
-                currentUserProfile = null;
-                userLikes.clear();
+       supabase.auth.onAuthStateChange(async (event, session) => {
+    currentUser = session?.user || null;
+    if (currentUser) {
+        currentUserProfile = await getUserProfile(currentUser.id);
+        await loadUserLikes();
+    } else {
+        currentUserProfile = null;
+        userLikes.clear();
+    }
+    renderAuthBar();
+
+    // Update like buttons
+    document.querySelectorAll('.news-like-btn').forEach(btn => {
+        const postId = btn.dataset.postId;
+        const liked  = userLikes.has(postId);
+        btn.classList.toggle('liked', liked);
+        const likeIcon = btn.querySelector('.like-icon');
+        if (likeIcon) likeIcon.innerHTML = likedHeartSVG(liked);
+    });
+
+    // Replace "sign in to comment" prompts with actual comment forms
+    if (currentUser) {
+        document.querySelectorAll('.news-login-prompt').forEach(prompt => {
+            const postId = prompt.closest('.news-comments-section')?.id?.replace('comments-', '');
+            if (!postId) return;
+            prompt.outerHTML = `
+                <div class="news-comment-form">
+                    <textarea class="news-comment-input" id="comment-input-${postId}"
+                        placeholder="Write a comment…" rows="1" maxlength="1000"></textarea>
+                    <button class="news-comment-submit" data-post-id="${postId}">Post</button>
+                </div>
+            `;
+            // Bind the new submit button
+            const section = document.getElementById(`comments-${postId}`);
+            if (section) {
+                const submitBtn = section.querySelector('.news-comment-submit');
+                if (submitBtn) {
+                    submitBtn.addEventListener('click', () => {
+                        handleComment(postId, section.closest('.news-post-card'));
+                    });
+                }
+                const textarea = section.querySelector(`#comment-input-${postId}`);
+                if (textarea) {
+                    textarea.addEventListener('input', () => {
+                        textarea.style.height = 'auto';
+                        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+                    });
+                    textarea.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleComment(postId, section.closest('.news-post-card'));
+                        }
+                    });
+                }
             }
-            renderAuthBar();
-            document.querySelectorAll('.news-like-btn').forEach(btn => {
-                const postId = btn.dataset.postId;
-                const liked  = userLikes.has(postId);
-                btn.classList.toggle('liked', liked);
-                const likeIcon = btn.querySelector('.like-icon');
-                if (likeIcon) likeIcon.innerHTML = likedHeartSVG(liked);
-            });
         });
+    } else {
+        // Replace comment forms with sign in prompts when logged out
+        document.querySelectorAll('.news-comment-form').forEach(form => {
+            const postId = form.closest('.news-comments-section')?.id?.replace('comments-', '');
+            if (!postId) return;
+            form.outerHTML = `
+                <div class="news-login-prompt">
+                    <a id="comment-login-${postId}">Sign in</a> to leave a comment.
+                </div>
+            `;
+            const loginLink = document.getElementById(`comment-login-${postId}`);
+            if (loginLink) {
+                loginLink.addEventListener('click', () => openAuthModal('login'));
+            }
+        });
+    }
+});
     }
 
     // ── Auth bar ─────────────────────────────────────────────────────────────
