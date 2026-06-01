@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Shadrack Akrofi-Quarcoo</title>
+    <link rel="icon" type="image/icon" href="./assets/images/orkut.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Lato:wght@400&display=swap" rel="stylesheet">
+
+    <style>
+        /* ============================================================
+           ADMIN DASHBOARD — full admin UI
+           ============================================================ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --navy: #0b132b;
+            --navy-light: #1a2847;
+            --gold: #f4b400;
+            --gold-light: #ffd54f;
+            --bg: #f0f2f5;
+            --white: #ffffff;
+            --text: #2d3748;
+            --muted: #718096;
+            --border: #e2e8f0;
+            --danger: #e53e3e;
+            --success: #38a169;
+            --sidebar-w: 260px;
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ---- Auth Gate ---- */
+        #admin-auth-gate {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 1.5rem;
+        }
+        .admin-login-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 3rem 2.5rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+        }
+        .admin-login-logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .admin-login-logo-circle {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--navy), var(--navy-light));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+        .admin-login-logo-circle svg { width: 30px; height: 30px; fill: var(--gold); }
+        .admin-login-card h2 { font-family: 'Poppins', sans-serif; font-size: 1.5rem; color: var(--navy); text-align: center; margin-bottom: 0.4rem; }
+        .admin-login-card p { color: var(--muted); text-align: center; font-size: 0.9rem; margin-bottom: 2rem; }
+        .admin-login-group { margin-bottom: 1.2rem; }
+        .admin-login-group label { display: block; font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 700; color: var(--navy); margin-bottom: 0.4rem; }
+        .admin-login-group input {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+            background: #f8f9fa;
+        }
+        .admin-login-group input:focus { border-color: var(--gold); background: var(--white); }
+        .admin-login-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--navy), var(--navy-light));
+            color: var(--gold);
+            border: none;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .admin-login-btn:hover { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--navy); }
+        .admin-login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .admin-login-error { color: var(--danger); font-size: 0.85rem; margin-top: 0.8rem; text-align: center; display: none; }
+        .admin-login-error.visible { display: block; }
+
+        /* ---- Sidebar ---- */
+        #admin-app { display: none; width: 100%; }
+        #admin-app.visible { display: flex; }
+
+        .admin-sidebar {
+            width: var(--sidebar-w);
+            background: var(--navy);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .admin-sidebar-logo {
+            padding: 1.8rem 1.5rem 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .admin-sidebar-logo-text {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+        .admin-sidebar-logo-sub {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 0.2rem;
+        }
+        .admin-nav { padding: 1.5rem 0; flex: 1; }
+        .admin-nav-section-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.35);
+            padding: 0.5rem 1.5rem;
+            margin-top: 0.5rem;
+        }
+        .admin-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.85rem 1.5rem;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            font-size: 0.95rem;
+            user-select: none;
+        }
+        .admin-nav-item svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
+        .admin-nav-item:hover { background: rgba(255,255,255,0.07); color: #fff; }
+        .admin-nav-item.active { background: rgba(244,180,0,0.12); color: var(--gold); border-left-color: var(--gold); }
+        .admin-nav-item .nav-badge {
+            margin-left: auto;
+            background: var(--gold);
+            color: var(--navy);
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.15rem 0.5rem;
+            border-radius: 10px;
+        }
+        .admin-sidebar-footer {
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .admin-signout-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            font-size: 0.9rem;
+            background: none;
+            border: none;
+            width: 100%;
+            padding: 0;
+            transition: color 0.2s;
+        }
+        .admin-signout-btn:hover { color: #ff7675; }
+        .admin-signout-btn svg { width: 18px; height: 18px; fill: currentColor; }
+
+        /* ---- Main content ---- */
+        .admin-main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .admin-topbar {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 1.2rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            gap: 1rem;
+        }
+        .admin-topbar-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--navy);
+        }
+        .admin-topbar-user {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+        .admin-topbar-avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--navy), var(--gold));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        .admin-mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.3rem;
+            color: var(--navy);
+        }
+        .admin-mobile-menu-btn svg { width: 24px; height: 24px; fill: currentColor; }
+
+        /* ---- Panels ---- */
+        .admin-panel { display: none; padding: 2rem; flex: 1; }
+        .admin-panel.active { display: block; }
+        .admin-panel-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 0.4rem;
+        }
+        .admin-panel-subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; }
+
+        /* ---- Stats Grid ---- */
+        .admin-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+        .admin-stat-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .admin-stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        .admin-stat-icon--gold   { background: rgba(244,180,0,0.12); }
+        .admin-stat-icon--navy   { background: rgba(11,19,43,0.08); }
+        .admin-stat-icon--red    { background: rgba(229,62,62,0.1); }
+        .admin-stat-icon--green  { background: rgba(56,161,105,0.1); }
+        .admin-stat-value { font-family: 'Poppins', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--navy); }
+        .admin-stat-label { font-size: 0.85rem; color: var(--muted); }
+
+        /* ---- News Management ---- */
+        .admin-action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .admin-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.25s ease;
+            text-decoration: none;
+        }
+        .admin-btn svg { width: 18px; height: 18px; fill: currentColor; }
+        .admin-btn--primary { background: var(--navy); color: var(--gold); }
+        .admin-btn--primary:hover { background: var(--gold); color: var(--navy); }
+        .admin-btn--danger { background: transparent; color: var(--danger); border-color: var(--danger); }
+        .admin-btn--danger:hover { background: var(--danger); color: #fff; }
+        .admin-btn--success { background: var(--success); color: #fff; }
+        .admin-btn--success:hover { background: #2f855a; }
+        .admin-btn--sm { padding: 0.5rem 1rem; font-size: 0.82rem; }
+        .admin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ---- Post Form ---- */
+        .admin-post-form-wrapper {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+            display: none;
+        }
+        .admin-post-form-wrapper.open { display: block; }
+        .admin-post-form-wrapper h3 { font-family: 'Poppins', sans-serif; font-size: 1.1rem; color: var(--navy); margin-bottom: 1.5rem; }
+        .admin-form-group { margin-bottom: 1.2rem; }
+        .admin-form-group label { display: block; font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 700; color: var(--navy); margin-bottom: 0.5rem; }
+        .admin-form-group input,
+        .admin-form-group textarea {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+            background: #f8f9fa;
+            resize: vertical;
+        }
+        .admin-form-group input:focus,
+        .admin-form-group textarea:focus { border-color: var(--gold); background: var(--white); }
+        .admin-form-group textarea { min-height: 120px; }
+        .admin-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .admin-form-actions { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
+
+        /* Image upload preview */
+        .admin-image-upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f8f9fa;
+            position: relative;
+        }
+        .admin-image-upload-area:hover { border-color: var(--gold); background: rgba(244,180,0,0.04); }
+        .admin-image-upload-area.has-image { padding: 0; overflow: hidden; }
+        .admin-image-upload-area input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: none;
+            border-radius: 0;
+        }
+        .admin-image-upload-area input[type="file"]:focus { border: none; background: none; }
+        .admin-image-preview {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            display: none;
+            border-radius: 10px;
+        }
+        .admin-image-upload-label {
+            pointer-events: none;
+        }
+        .admin-image-upload-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .admin-image-upload-text { font-family: 'Poppins', sans-serif; font-weight: 600; color: var(--navy); font-size: 0.95rem; }
+        .admin-image-upload-sub { color: var(--muted); font-size: 0.82rem; margin-top: 0.3rem; }
+        .admin-image-remove-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1rem;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        /* ---- Posts Table ---- */
+        .admin-posts-grid {
+            display: grid;
+            gap: 1rem;
+        }
+        .admin-post-row {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.2rem 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: box-shadow 0.2s;
+        }
+        .admin-post-row:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .admin-post-row-thumb {
+            width: 72px;
+            height: 56px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: var(--border);
+            flex-shrink: 0;
+        }
+        .admin-post-row-thumb-placeholder {
+            width: 72px;
+            height: 56px;
+            border-radius: 8px;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        .admin-post-row-info { flex: 1; min-width: 0; }
+        .admin-post-row-title { font-family: 'Poppins', sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .admin-post-row-meta { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; display: flex; gap: 1rem; flex-wrap: wrap; }
+        .admin-post-row-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+        .admin-status-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            flex-shrink: 0;
+        }
+        .admin-status-badge--published { background: rgba(56,161,105,0.12); color: var(--success); }
+        .admin-status-badge--draft { background: rgba(113,128,150,0.12); color: var(--muted); }
+
+        /* ---- Users Table ---- */
+        .admin-users-table {
+            width: 100%;
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        .admin-users-table table { width: 100%; border-collapse: collapse; }
+        .admin-users-table th {
+            background: var(--bg);
+            padding: 1rem 1.2rem;
+            text-align: left;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .admin-users-table td {
+            padding: 1rem 1.2rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        .admin-user-row:hover td { background: #f8f9fa; }
+        .admin-user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--navy), var(--gold));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            overflow: hidden;
+        }
+        .admin-user-info { display: flex; align-items: center; gap: 0.7rem; }
+        .admin-role-badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.7rem;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+        .admin-role-badge--admin { background: rgba(244,180,0,0.15); color: #b8860b; }
+        .admin-role-badge--user { background: rgba(11,19,43,0.08); color: var(--navy); }
+        .admin-banned-badge { background: rgba(229,62,62,0.1); color: var(--danger); font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 20px; font-weight: 700; }
+
+        /* ---- Comments Moderation ---- */
+        .admin-comment-row {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.2rem 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            margin-bottom: 0.8rem;
+        }
+        .admin-comment-row-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.6rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .admin-comment-row-meta { font-size: 0.82rem; color: var(--muted); }
+        .admin-comment-row-text { color: var(--text); font-size: 0.92rem; line-height: 1.6; }
+        .admin-comment-row-post { font-size: 0.8rem; color: var(--muted); margin-top: 0.4rem; font-style: italic; }
+
+        /* ---- Toast ---- */
+        .saq-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 99999;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            max-width: 320px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        }
+        .saq-toast--success { background: var(--navy); color: var(--gold); border-left: 4px solid var(--gold); }
+        .saq-toast--error   { background: #c0392b; color: #fff; border-left: 4px solid #ff6b6b; }
+        .saq-toast--info    { background: var(--navy-light); color: #fff; border-left: 4px solid #74b9ff; }
+
+        /* ---- Loading ---- */
+        .admin-loading { text-align: center; padding: 3rem; color: var(--muted); font-size: 0.95rem; }
+        .admin-empty { text-align: center; padding: 3rem; color: var(--muted); }
+        .admin-empty svg { width: 48px; height: 48px; fill: var(--border); margin-bottom: 0.8rem; }
+
+        /* ---- Search ---- */
+        .admin-search-input {
+            padding: 0.7rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+            min-width: 200px;
+            background: var(--bg);
+        }
+        .admin-search-input:focus { border-color: var(--gold); background: var(--white); }
+
+        /* ---- Mobile ---- */
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                position: fixed;
+                left: -100%;
+                z-index: 1000;
+                transition: left 0.3s ease;
+            }
+            .admin-sidebar.mobile-open { left: 0; }
+            .admin-mobile-menu-btn { display: block; }
+            .admin-panel { padding: 1.2rem; }
+            .admin-topbar { padding: 1rem; }
+            .admin-form-row { grid-template-columns: 1fr; }
+            .admin-stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .admin-post-row { flex-wrap: wrap; }
+            .admin-users-table { overflow-x: auto; }
+            .admin-users-table table { min-width: 600px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ======== AUTH GATE ======== -->
+    <div id="admin-auth-gate">
+        <div class="admin-login-card">
+            <div class="admin-login-logo">
+                <div class="admin-login-logo-circle">
+                    <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                </div>
+                <h2>Admin Access</h2>
+                <p>Sign in with your admin credentials</p>
+            </div>
+            <div class="admin-login-group">
+                <label for="admin-email">Email Address</label>
+                <input type="email" id="admin-email" placeholder="admin@example.com" autocomplete="email">
+            </div>
+            <div class="admin-login-group">
+                <label for="admin-password">Password</label>
+                <input type="password" id="admin-password" placeholder="Your password" autocomplete="current-password">
+            </div>
+            <button class="admin-login-btn" id="admin-login-btn">Sign In</button>
+            <p class="admin-login-error" id="admin-login-error"></p>
+        </div>
+    </div>
+
+    <!-- ======== MAIN APP ======== -->
+    <div id="admin-app">
+
+        <!-- Sidebar -->
+        <aside class="admin-sidebar" id="admin-sidebar">
+            <div class="admin-sidebar-logo">
+                <div class="admin-sidebar-logo-text">⚡ Admin Panel</div>
+                <div class="admin-sidebar-logo-sub">Shadrack Akrofi-Quarcoo</div>
+            </div>
+
+            <nav class="admin-nav">
+                <div class="admin-nav-section-title">Overview</div>
+                <div class="admin-nav-item active" data-panel="dashboard">
+                    <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                    Dashboard
+                </div>
+
+                <div class="admin-nav-section-title">Content</div>
+                <div class="admin-nav-item" data-panel="posts">
+                    <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                    News Posts
+                    <span class="nav-badge" id="nav-posts-count">0</span>
+                </div>
+
+                <div class="admin-nav-section-title">Community</div>
+                <div class="admin-nav-item" data-panel="comments">
+                    <svg viewBox="0 0 24 24"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/></svg>
+                    Comments
+                </div>
+                <div class="admin-nav-item" data-panel="users">
+                    <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    Users
+                    <span class="nav-badge" id="nav-users-count">0</span>
+                </div>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <button class="admin-signout-btn" id="admin-signout-btn">
+                    <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+                    Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="admin-main">
+            <div class="admin-topbar">
+                <div style="display:flex;align-items:center;gap:0.8rem">
+                    <button class="admin-mobile-menu-btn" id="admin-mobile-menu-btn" aria-label="Menu">
+                        <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+                    </button>
+                    <span class="admin-topbar-title" id="admin-topbar-title">Dashboard</span>
+                </div>
+                <div class="admin-topbar-user">
+                    <div class="admin-topbar-avatar" id="admin-topbar-avatar">A</div>
+                    <span id="admin-topbar-name">Admin</span>
+                </div>
+            </div>
+
+            <!-- Dashboard Panel -->
+            <div class="admin-panel active" id="panel-dashboard">
+                <h1 class="admin-panel-title">Dashboard</h1>
+                <p class="admin-panel-subtitle">Overview of your news system activity</p>
+
+                <div class="admin-stats-grid" id="dashboard-stats">
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon admin-stat-icon--gold">📰</div>
+                        <div><div class="admin-stat-value" id="stat-posts">—</div><div class="admin-stat-label">Total Posts</div></div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon admin-stat-icon--navy">👥</div>
+                        <div><div class="admin-stat-value" id="stat-users">—</div><div class="admin-stat-label">Registered Users</div></div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon admin-stat-icon--red">❤️</div>
+                        <div><div class="admin-stat-value" id="stat-likes">—</div><div class="admin-stat-label">Total Likes</div></div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon admin-stat-icon--green">💬</div>
+                        <div><div class="admin-stat-value" id="stat-comments">—</div><div class="admin-stat-label">Total Comments</div></div>
+                    </div>
+                </div>
+
+                <h3 style="font-family:'Poppins',sans-serif;color:var(--navy);margin-bottom:1rem;font-size:1rem;">Recent Posts</h3>
+                <div id="dashboard-recent-posts"></div>
+
+                <a href="./news.html" target="_blank" class="admin-btn admin-btn--primary" style="margin-top:1.5rem;display:inline-flex">
+                    <svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+                    View Public News Page
+                </a>
+            </div>
+
+            <!-- Posts Panel -->
+            <div class="admin-panel" id="panel-posts">
+                <h1 class="admin-panel-title">News Posts</h1>
+                <p class="admin-panel-subtitle">Create, edit and manage all news posts</p>
+
+                <div class="admin-action-bar">
+                    <button class="admin-btn admin-btn--primary" id="toggle-post-form-btn">
+                        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                        New Post
+                    </button>
+                    <input class="admin-search-input" id="posts-search" placeholder="Search posts…" type="search">
+                </div>
+
+                <!-- Create/Edit Form -->
+                <div class="admin-post-form-wrapper" id="post-form-wrapper">
+                    <h3 id="post-form-title">Create New Post</h3>
+                    <input type="hidden" id="editing-post-id">
+                    <input type="hidden" id="editing-post-image-path">
+
+                    <div class="admin-form-group">
+                        <label for="post-title">Title *</label>
+                        <input type="text" id="post-title" placeholder="Enter post headline…" maxlength="300">
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label for="post-content">Content *</label>
+                        <textarea id="post-content" rows="6" placeholder="Write your post content here…"></textarea>
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label>Post Image (optional)</label>
+                        <div class="admin-image-upload-area" id="image-upload-area">
+                            <input type="file" id="post-image-input" accept="image/jpeg,image/png,image/webp,image/gif">
+                            <button type="button" class="admin-image-remove-btn" id="image-remove-btn">✕</button>
+                            <img class="admin-image-preview" id="image-preview" alt="Preview">
+                            <div class="admin-image-upload-label" id="upload-label">
+                                <div class="admin-image-upload-icon">🖼️</div>
+                                <div class="admin-image-upload-text">Click to upload image</div>
+                                <div class="admin-image-upload-sub">JPEG, PNG, WebP or GIF · max 5MB</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label>
+                            <input type="checkbox" id="post-published" checked style="margin-right:0.5rem">
+                            Publish immediately
+                        </label>
+                    </div>
+
+                    <div class="admin-form-actions">
+                        <button class="admin-btn admin-btn--success" id="save-post-btn">
+                            <svg viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+                            Save Post
+                        </button>
+                        <button class="admin-btn" id="cancel-post-btn" style="background:#f8f9fa;color:var(--navy);border-color:var(--border)">Cancel</button>
+                    </div>
+                </div>
+
+                <!-- Posts List -->
+                <div class="admin-posts-grid" id="admin-posts-list">
+                    <div class="admin-loading">Loading posts…</div>
+                </div>
+            </div>
+
+            <!-- Comments Panel -->
+            <div class="admin-panel" id="panel-comments">
+                <h1 class="admin-panel-title">Comment Moderation</h1>
+                <p class="admin-panel-subtitle">Review and delete inappropriate comments</p>
+                <div class="admin-action-bar">
+                    <input class="admin-search-input" id="comments-search" placeholder="Search comments…" type="search">
+                </div>
+                <div id="admin-comments-list">
+                    <div class="admin-loading">Loading comments…</div>
+                </div>
+            </div>
+
+            <!-- Users Panel -->
+            <div class="admin-panel" id="panel-users">
+                <h1 class="admin-panel-title">User Management</h1>
+                <p class="admin-panel-subtitle">View all registered users and manage access</p>
+                <div class="admin-action-bar">
+                    <input class="admin-search-input" id="users-search" placeholder="Search users…" type="search">
+                </div>
+                <div class="admin-users-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Joined</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-users-table-body">
+                            <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem">Loading users…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./supaase.js"></script>
+<script src="./admin.js"></script>
+</body>
+</html>
