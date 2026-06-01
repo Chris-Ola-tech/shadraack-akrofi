@@ -114,6 +114,7 @@
                 const titles = { dashboard: 'Dashboard', posts: 'News Posts', comments: 'Comments', users: 'Users' };
                 document.getElementById('admin-topbar-title').textContent = titles[panel] || panel;
                 document.getElementById('admin-sidebar').classList.remove('mobile-open');
+                document.getElementById('sidebar-overlay').classList.remove('active');
                 if (panel === 'posts'    && allPosts.length === 0)    loadPosts();
                 if (panel === 'comments' && allComments.length === 0) loadComments();
                 if (panel === 'users'    && allUsers.length === 0)    loadUsers();
@@ -131,10 +132,17 @@
     function setupMobileMenu() {
         const btn     = document.getElementById('admin-mobile-menu-btn');
         const sidebar = document.getElementById('admin-sidebar');
-        btn.addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
-        document.addEventListener('click', e => {
-            if (!sidebar.contains(e.target) && e.target !== btn)
-                sidebar.classList.remove('mobile-open');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('active', isOpen);
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('mobile-open');
+            overlay.classList.remove('active');
         });
     }
 
@@ -151,8 +159,9 @@
         document.getElementById('stat-users').textContent    = usersRes.count ?? '—';
         document.getElementById('stat-likes').textContent    = likesRes.count ?? '—';
         document.getElementById('stat-comments').textContent = commentsRes.count ?? '—';
-        document.getElementById('nav-posts-count').textContent = postsRes.count ?? 0;
-        document.getElementById('nav-users-count').textContent = usersRes.count ?? 0;
+        document.getElementById('nav-posts-count').textContent    = postsRes.count ?? 0;
+        document.getElementById('nav-users-count').textContent    = usersRes.count ?? 0;
+        document.getElementById('nav-comments-count').textContent = commentsRes.count ?? 0;
 
         const { data: recent } = await supabase
             .from('news_posts')
@@ -324,7 +333,6 @@
             imagePath = existingImagePath;
         }
 
-        // Uses your ACTUAL column names: caption + published
         const postData = {
             title,
             caption:   content,
@@ -408,7 +416,6 @@
     async function loadComments() {
         const container = document.getElementById('admin-comments-list');
 
-        // comments table uses user_name (text) not a profiles join
         const { data, error } = await supabase
             .from('comments')
             .select('*, news_posts(title)')
@@ -421,6 +428,8 @@
             return;
         }
         allComments = data || [];
+        // Update the badge in sidebar
+        document.getElementById('nav-comments-count').textContent = allComments.length;
         renderComments(allComments);
 
         document.getElementById('comments-search').addEventListener('input', e => {
@@ -465,6 +474,8 @@
         const el = document.getElementById(`admin-comment-${commentId}`);
         if (el) { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }
         allComments = allComments.filter(c => c.id !== commentId);
+        // Update badge after deletion
+        document.getElementById('nav-comments-count').textContent = allComments.length;
     }
 
     // ── Users Panel ────────────────────────────────────────────────────────
@@ -512,25 +523,23 @@
                             </div>
                         </div>
                     </td>
-                    <td style="color:var(--muted);font-size:0.88rem">${escHtml(u.email || '—')}</td>
-                    <td><span class="admin-role-badge admin-role-badge--${u.role || 'user'}">${u.role || 'user'}</span></td>
-                    <td style="color:var(--muted);font-size:0.88rem">${formatDate(u.created_at)}</td>
-                    <td>${u.is_banned
+                    <td data-label="Email" style="color:var(--muted);font-size:0.88rem">${escHtml(u.email || '—')}</td>
+                    <td data-label="Role"><span class="admin-role-badge admin-role-badge--${u.role || 'user'}">${u.role || 'user'}</span></td>
+                    <td data-label="Joined" style="color:var(--muted);font-size:0.88rem">${formatDate(u.created_at)}</td>
+                    <td data-label="Status">${u.is_banned
                         ? `<span class="admin-banned-badge">Banned</span>`
                         : `<span style="color:var(--success);font-size:0.8rem;font-weight:600">Active</span>`}
                     </td>
-                    <td>
-                        <div style="display:flex;gap:0.4rem;flex-wrap:wrap">
-                            ${u.role !== 'admin'
-                                ? `<button class="admin-btn admin-btn--sm"
-                                    style="background:#f8f9fa;color:var(--navy);border-color:var(--border)"
-                                    data-action="promote-user" data-id="${u.id}">Make Admin</button>` : ''}
-                            ${u.is_banned
-                                ? `<button class="admin-btn admin-btn--sm admin-btn--success"
-                                    data-action="unban-user" data-id="${u.id}">Unban</button>`
-                                : `<button class="admin-btn admin-btn--sm admin-btn--danger"
-                                    data-action="ban-user" data-id="${u.id}">Ban</button>`}
-                        </div>
+                    <td class="user-td-actions">
+                        ${u.role !== 'admin'
+                            ? `<button class="admin-btn admin-btn--sm"
+                                style="background:#f8f9fa;color:var(--navy);border-color:var(--border)"
+                                data-action="promote-user" data-id="${u.id}">Make Admin</button>` : ''}
+                        ${u.is_banned
+                            ? `<button class="admin-btn admin-btn--sm admin-btn--success"
+                                data-action="unban-user" data-id="${u.id}">Unban</button>`
+                            : `<button class="admin-btn admin-btn--sm admin-btn--danger"
+                                data-action="ban-user" data-id="${u.id}">Ban</button>`}
                     </td>
                 </tr>
             `;
